@@ -161,7 +161,8 @@ def run_calculation(request: schema.ObservationRequest) -> schema.ObservationRes
         readout_noise=inst.camera.readout_noise,
         num_pixels_aperture=n_pix,
         single_exp_time=opt.single_exp_time,
-        num_pixels_sky_estimate=n_est
+        num_pixels_sky_estimate=n_est,
+        background_flatness_fraction=inst.camera.background_flatness_fraction
     ))
 
     match opt:
@@ -169,7 +170,8 @@ def run_calculation(request: schema.ObservationRequest) -> schema.ObservationRes
             total_exp_time = opt.single_exp_time * n_exp
             total_snr = float(physics.calculate_total_snr(
                 source_rate, sky_rate, inst.camera.dark_current_rate, inst.camera.readout_noise,
-                n_pix, opt.single_exp_time, total_exp_time, n_exp, n_est
+                n_pix, opt.single_exp_time, total_exp_time, n_exp, n_est,
+                inst.camera.background_flatness_fraction
             ))
             final_req_exposures = None # req_exposures isn't returned in SolveForSNR mode
 
@@ -177,10 +179,11 @@ def run_calculation(request: schema.ObservationRequest) -> schema.ObservationRes
             req_exp_float = physics.solve_required_exposures(t_snr, single_snr)
             final_req_exposures = int(math.ceil(req_exp_float))
             total_exp_time = opt.single_exp_time * final_req_exposures
-            
+
             total_snr = float(physics.calculate_total_snr(
                 source_rate, sky_rate, inst.camera.dark_current_rate, inst.camera.readout_noise,
-                n_pix, opt.single_exp_time, total_exp_time, final_req_exposures, n_est
+                n_pix, opt.single_exp_time, total_exp_time, final_req_exposures, n_est,
+                inst.camera.background_flatness_fraction
             ))
             
         case _:

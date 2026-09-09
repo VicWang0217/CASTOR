@@ -161,6 +161,7 @@ This profile encapsulates all hardware-specific parameters and is subdivided int
 | `dark_current_rate` | $R_{\text{dark}}$ | e-/s/pix | Thermal electron generation rate per pixel. |
 | `readout_noise` | $\text{RON}$ | e-/pix | Electronic noise introduced during the readout phase. |
 | `full_well_capacity` | $\text{FWC}$ | e- | Maximum electron capacity per pixel before saturation. |
+| `background_flatness_fraction` | $f_{\text{flat}}$ | dimensionless | Flat-field/background-gradient residual as a fraction of the per-frame background level. Default 0.0 (not modelled). |
 
 #### 3.1.3 Filter Schema
 
@@ -331,15 +332,33 @@ $$N_{\text{bkg}} = N_{\text{pix}} + N_{\text{est}}$$
 
 where $N_{\text{est}}$ is the cost of *estimating* the sky, defined in 4.3.2. Setting $N_{\text{est}} = 0$ recovers the textbook CCD equation, which is what CASTOR computed until this term was added, and what it still computes when `options.sky_annulus` is omitted.
 
+They also carry a flatness variance term $V_{\text{flat}}$, defined in 4.3.1a. Unlike every other term here it is *not* multiplied by $N_{\text{bkg}}$ — it is not per-pixel photon noise, and enters the total variance once, already summed over the aperture.
+
 The Single Exposure SNR ($\text{SNR}_{\text{single}}$) evaluates the signal quality within a single integration timeframe ($t_{\text{single}}$):
 
-$$\text{SNR}_{\text{single}} = \frac{Rate_{\text{src}} \cdot t_{\text{single}}}{\sqrt{Rate_{\text{src}} \cdot t_{\text{single}} + N_{\text{bkg}} \cdot (Rate_{\text{sky}} \cdot t_{\text{single}} + R_{\text{dark}} \cdot t_{\text{single}} + \text{RON}^2)}}$$
+$$\text{SNR}_{\text{single}} = \frac{Rate_{\text{src}} \cdot t_{\text{single}}}{\sqrt{Rate_{\text{src}} \cdot t_{\text{single}} + N_{\text{bkg}} \cdot (Rate_{\text{sky}} \cdot t_{\text{single}} + R_{\text{dark}} \cdot t_{\text{single}} + \text{RON}^2) + V_{\text{flat}}(t_{\text{single}})}}$$
 
 The Total SNR ($\text{SNR}_{\text{total}}$) aggregates the signal across the total integration time ($t_{\text{total}}$) and accounts for the accumulation of read noise across multiple exposures ($N_{\text{exp}}$):
 
-$$\text{SNR}_{\text{total}} = \frac{Rate_{\text{src}} \cdot t_{\text{total}}}{\sqrt{Rate_{\text{src}} \cdot t_{\text{total}} + N_{\text{bkg}} \cdot Rate_{\text{sky}} \cdot t_{\text{total}} + N_{\text{exp}} \cdot N_{\text{bkg}} \cdot (R_{\text{dark}} \cdot t_{\text{single}} + \text{RON}^2)}}$$
+$$\text{SNR}_{\text{total}} = \frac{Rate_{\text{src}} \cdot t_{\text{total}}}{\sqrt{Rate_{\text{src}} \cdot t_{\text{total}} + N_{\text{bkg}} \cdot Rate_{\text{sky}} \cdot t_{\text{total}} + N_{\text{exp}} \cdot N_{\text{bkg}} \cdot (R_{\text{dark}} \cdot t_{\text{single}} + \text{RON}^2) + V_{\text{flat}}(t_{\text{total}})}}$$
 
-$N_{\text{est}}$ appears in both places because each frame is sky-subtracted with its own estimate: stacking averages those estimates down at exactly the rate it averages down everything else.
+$N_{\text{est}}$ appears in both places because each frame is sky-subtracted with its own estimate: stacking averages those estimates down at exactly the rate it averages down everything else. $V_{\text{flat}}$ does not follow that rule — see 4.3.1a for why it is evaluated at $t_{\text{single}}$ in one expression and $t_{\text{total}}$ in the other.
+
+**4.3.1a Background Flatness Variance ($V_{\text{flat}}$)**
+
+Every noise term above is photon counting: independent from pixel to pixel, so it averages down as more pixels or more exposures are added. A real flat field and a real background are not perfectly known, and the residual error they leave behind is *correlated* across the aperture — the same fractional error in every pixel, not a different random one — so it does not average down at all as the aperture widens. Measured against a real galaxy (NGC 3621, SLT r', 2026-09-02 — validation/data/raw/_extended_2026-09-02/RESULT.md), aperture noise fit
+
+$$\sigma^2 = N_{\text{pix}} \cdot (Rate_{\text{sky}} \cdot t + \text{RON}^2) + (f_{\text{flat}} \cdot Rate_{\text{sky}} \cdot t \cdot N_{\text{pix}})^2$$
+
+better than the first term alone, with $f_{\text{flat}} = 2.0\%$ of the per-frame background level. The second term is $V_{\text{flat}}$:
+
+$$V_{\text{flat}}(t) = (f_{\text{flat}} \cdot Rate_{\text{sky}} \cdot t \cdot N_{\text{pix}})^2$$
+
+deliberately built on $N_{\text{pix}}$ alone, not $N_{\text{bkg}}$: the residual is a property of the aperture's own footprint on the flat, not of the separate annulus used to estimate the sky.
+
+Because a single flat field and a single night's background gradient apply identically to every frame of a stack, $f_{\text{flat}}$ does not shrink with more frames the way dark current and readout noise do — the fraction left behind in the final stack is set by the stack's total accumulated background, not by how it was split into exposures. So $V_{\text{flat}}$ is evaluated at $t_{\text{single}}$ in $\text{SNR}_{\text{single}}$ and at $t_{\text{total}}$ in $\text{SNR}_{\text{total}}$, entering once rather than $N_{\text{exp}}$ times.
+
+At 1.5" aperture radius this term was undetectable against the noise floor; at 12" it made the predicted SNR optimistic by a factor of 2 — see §5.3. $f_{\text{flat}} = 0$ (the default) recovers the equations of 4.3.1 exactly as they were before this term existed.
 
 **4.3.2 Cost of the Sky Estimate ($N_{\text{est}}$)**
 
@@ -398,7 +417,7 @@ While the Exposure Time Calculator (ETC) is designed to provide robust and effic
 
 * **Constant Dark and Readout Noise:** Sensor parameters such as dark current rate ($R_{\text{dark}}$) and readout noise ($\text{RON}$) are treated as constant detector specifications across the entire array, omitting potential spatial variations or thermal fluctuations during long-term observations.
 
-* **Photon Noise Only:** Every noise term modeled here scales with photon or electron counts. Flat-field residual, scintillation and PSF instability do not, and they set a floor the model cannot reach. Measured against 314 stars on fifteen LOT/SOPHIA $r'$ frames (2025-11-06), predictions track the observed scatter to within 3% across four flux bins spanning $2$ to $60\ \text{ke}^-$; above that the observed SNR falls short, reaching a factor of 4.6 for the brightest 20 stars, where a systematic of order 1% dominates. Treat a predicted SNR above roughly 100 as an upper bound.
+* **Photon Noise Only, Partially Closed for Flat-Fielding:** Every other noise term modeled here scales with photon or electron counts; scintillation and PSF instability do not, and they set a floor the model cannot reach. Measured against 314 stars on fifteen LOT/SOPHIA $r'$ frames (2025-11-06), predictions track the observed scatter to within 3% across four flux bins spanning $2$ to $60\ \text{ke}^-$; above that the observed SNR falls short, reaching a factor of 4.6 for the brightest 20 stars, where a systematic of order 1% dominates. Treat a predicted SNR above roughly 100 as an upper bound. Flat-field and background-gradient residual is no longer entirely outside the model: $V_{\text{flat}}$ (§4.3.1a) carries it when `background_flatness_fraction` is set, measured at 2.0% of the background on the one camera it has been checked against (SLT/DU934P). It defaults to 0.0 (not modelled) for every other preset, and the measured value is itself an upper limit from a cloudy night, not a floor a clear one would also hit.
 
 * **Cost of the Sky Estimate:** That same measurement is where $N_{\text{est}}$ (§4.3.2) comes from. Without it the engine ran 13% optimistic at $k_{\text{ap}} = 3$ (observed/predicted 0.868); with it, 1.011. The correction was not fitted — its size follows from the aperture and annulus geometry alone, and the two agree to better than a percent.
 

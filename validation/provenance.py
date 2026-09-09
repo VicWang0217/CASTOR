@@ -58,6 +58,7 @@ PROVENANCE = {
     "lulin.cameras.SLT_DU934P.dark_current_rate": (0.017, DOCUMENT, "datasheet BEX2-DD at -80 C; operating temperature assumed"),
     "lulin.cameras.SLT_DU934P.readout_noise": (9.3, MEASURED, "datasheet's 3.3 assumed the 0.05 MHz port; the delivered calibrated frames carry ~9.3, measured twice independently on the NGC 3621 stack (8.9 differencing unregistered frames, 9.3 from the half-stack difference) — validation/data/raw/_extended_2026-09-02/RESULT.md"),
     "lulin.cameras.SLT_DU934P.full_well_capacity": (130000, DOCUMENT, "datasheet, BEX2-DD"),
+    "lulin.cameras.SLT_DU934P.background_flatness_fraction": (0.02, MEASURED, "NGC 3621 stack, SLT r' 2024-04-12, six aperture radii fit sigma^2 = N_pix*(sky+RN^2) + (f*N_pix)^2 with f = 2.0% of the per-frame background; the night was cloudy, so this is an upper limit, not a floor a clear night would also hit — validation/data/raw/_extended_2026-09-02/RESULT.md"),
 
     # ---- Lulin, SLT's two retired cameras (great-nas archive, 2021-2022) ----
     # SLT's raw nightly archive (Lulin_Observation_data/SLT) spans three

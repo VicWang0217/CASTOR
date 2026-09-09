@@ -860,8 +860,25 @@
         return out;
     }
 
-    function applyFragment(section, fragment) {
+    /* resetMissing is for a catalogue entry's own section (instrument.telescope,
+       .camera, .optic_filter): those are self-contained specs, so a field one
+       sibling entry carries and another does not -- e.g. background_flatness_fraction,
+       measured for one camera and not yet for its neighbours -- must fall back to
+       the field's own declared default, not silently keep whatever the previous
+       selection left sitting in the input. Left off (the default) for the
+       environment section, where a fragment is deliberately partial by design --
+       see applyBand above, which already handles its own staleness by re-applying
+       the base fragment before layering a band's override on top. */
+    function applyFragment(section, fragment, resetMissing) {
         var flat = flattenFragment(section, fragment || {}, {});
+        if (resetMissing) {
+            var prefix = section + '.';
+            Array.prototype.forEach.call(form.elements, function (input) {
+                if (!input.name || input.name.indexOf(prefix) !== 0) { return; }
+                if (Object.prototype.hasOwnProperty.call(flat, input.name)) { return; }
+                input.value = input.defaultValue;
+            });
+        }
         Object.keys(flat).forEach(function (path) {
             var input = form.elements[path];
             if (!input) { return; }
@@ -1037,7 +1054,7 @@
             var first = Object.keys(entries)[0];
             if (first) {
                 select.value = first;
-                applyFragment(cat.section, entries[first][cat.key]);
+                applyFragment(cat.section, entries[first][cat.key], true);
                 if (cat.kind === 'filters') { applyBand(entries[first]); }
                 collapseDetails(cat.panel);
             } else {
@@ -1063,7 +1080,7 @@
             select.addEventListener('change', function () {
                 var preset = catalogue(kind)[select.value];
                 if (preset) {
-                    applyFragment(section, preset[key]);
+                    applyFragment(section, preset[key], true);
                     if (kind === 'filters') { applyBand(preset); }
                     collapseDetails(panel);
                 } else {
