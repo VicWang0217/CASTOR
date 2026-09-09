@@ -56,7 +56,7 @@ PROVENANCE = {
     "lulin.cameras.SLT_DU934P.pixel_pitch": (13.0, DOCUMENT, "datasheet and the SLT page, 13 x 13 um"),
     "lulin.cameras.SLT_DU934P.quantum_efficiency": (0.85, GUESS, "no curve read for this sensor"),
     "lulin.cameras.SLT_DU934P.dark_current_rate": (0.017, DOCUMENT, "datasheet BEX2-DD at -80 C; operating temperature assumed"),
-    "lulin.cameras.SLT_DU934P.readout_noise": (3.3, DOCUMENT, "datasheet BEX2-DD at 0.05 MHz; readout speed assumed"),
+    "lulin.cameras.SLT_DU934P.readout_noise": (9.3, MEASURED, "datasheet's 3.3 assumed the 0.05 MHz port; the delivered calibrated frames carry ~9.3, measured twice independently on the NGC 3621 stack (8.9 differencing unregistered frames, 9.3 from the half-stack difference) — validation/data/raw/_extended_2026-09-02/RESULT.md"),
     "lulin.cameras.SLT_DU934P.full_well_capacity": (130000, DOCUMENT, "datasheet, BEX2-DD"),
 
     # ---- Lulin, SLT's two retired cameras (great-nas archive, 2021-2022) ----
