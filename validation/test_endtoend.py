@@ -75,3 +75,21 @@ def test_the_saturation_cut_still_sits_below_the_real_ceiling(camera):
     adc_ceiling_e = 65535 * 0.92
     assert adc_ceiling_e > 50_000
     assert camera.full_well_capacity > adc_ceiling_e
+
+
+@pytest.mark.parametrize("flux_bin", list(endtoend.EXTRACTION_STABILITY))
+def test_tight_aperture_excess_is_extraction_not_intrinsic(flux_bin):
+    """The 0.85 x FWHM shortfall must not become a source-noise term.
+
+    These are the same stars on the same frames. Intrinsic variability would
+    survive both the free-width PSF fit and the wider aperture; instead those
+    two agree while only the tight aperture has extra scatter. The 0.85
+    default is consequently a photon-limit operating point, not a promise that
+    uncorrected aperture photometry will attain that limit.
+    """
+    measured = endtoend.EXTRACTION_STABILITY[flux_bin]
+    baseline = max(measured["aperture_150_rms"], measured["psf_rms"])
+    assert measured["aperture_085_rms"] > 1.5 * baseline
+    assert measured["aperture_150_rms"] == pytest.approx(
+        measured["psf_rms"], abs=0.003
+    )

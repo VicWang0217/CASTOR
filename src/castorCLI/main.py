@@ -55,7 +55,7 @@ ASSUMPTIONS: tuple[tuple[str, Any, str], ...] = (
     ("target.sed.type", "flat", "a choice of contract, not a measurement"),
     ("target.brightness.type", "ab_mag", "the one brightness type needing no zero point"),
     ("instrument.throughput_correction", 1.0, "means no correction, not a measured one"),
-    ("options.aperture_factor", 0.85, "near worst-case-optimal, but the best aperture is the one you will actually use"),
+    ("options.aperture_factor", 0.85, "photon-limit optimum; tight apertures need a stable PSF or aperture correction"),
     ("options.sky_annulus.inner_factor", 3.0, "clear of the PSF wings for a Gaussian; a real reduction may need more"),
     ("options.sky_annulus.outer_factor", 5.0, "wide enough that the sky estimate is not the dominant noise"),
     ("options.sky_annulus.estimator", "median", "what photometry pipelines almost always use, and it costs pi/2"),

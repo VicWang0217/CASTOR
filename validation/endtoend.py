@@ -63,3 +63,24 @@ MEASURED = {
     "120-240k": dict(n=15,  flux_e=177261.0, snr_obs=219.00),
     ">240k":    dict(n=5,   flux_e=261854.0, snr_obs=342.48),
 }
+
+#: HAP-11 follow-up on the same fifteen frames. Each entry is the median
+#: per-star fractional RMS after removing the transparency change common to a
+#: frame. The comparison uses only stars present on every frame, below the
+#: measured 50000 e- linearity cut, and with an unflagged elliptical-Gaussian
+#: PSF fit on every frame. Flux bins use the 3 x FWHM aperture signal.
+#:
+#: A real intrinsic change in a star is present whichever extractor measures
+#: it. Instead, the free-width PSF fit and the 1.5 x FWHM aperture agree while
+#: the same stars measured at 0.85 x FWHM carry substantially more scatter.
+#: That isolates the excess as tight-aperture extraction sensitivity, not a
+#: source noise term for CASTOR to add. The ignored raw-data reduction is
+#: `data/raw/_endtoend_2026-08-30/psf_scan.py`.
+EXTRACTION_STABILITY = {
+    "30-60k":  dict(n=24, aperture_085_rms=0.033286, aperture_150_rms=0.009289,
+                    psf_rms=0.009702),
+    "60-120k": dict(n=17, aperture_085_rms=0.012708, aperture_150_rms=0.006452,
+                    psf_rms=0.007170),
+    ">120k":   dict(n=20, aperture_085_rms=0.015579, aperture_150_rms=0.004076,
+                    psf_rms=0.005845),
+}

@@ -136,6 +136,14 @@ Each of these is asserted by a test, so it either stays true or announces itself
   up a third of a moonlit measurement. The old 11% figure quoted here measured this
   *and* the image-quality difference together — matched on image quality, the PSF is
   worth 4.2% by itself, more than the aperture is.
+- **The 0.85 default is photon-optimal, not automatically extraction-stable.**
+  Repeating the LOT/SOPHIA end-to-end measurement with the same stars and frames
+  gives 1.3-3.3% scatter for bright stars at 0.85 FWHM, but only 0.4-0.9% at
+  1.5 FWHM and 0.6-1.0% with a free-width PSF fit. Intrinsic variability would
+  remain in all three measurements; the excess isolated to the tight aperture is
+  therefore extraction sensitivity to local PSF changes. CASTOR keeps 0.85 as its
+  photon-limit default, while an aperture pipeline without PSF stability or an
+  aperture correction should supply the larger aperture it actually uses.
 - **The VLT/FORS2 preset's throughput is a fudge that works in one band.**
   `v_HIGH+114` is right to 8% only because a 0.51 'transmission' absorbs an
   optical throughput twice too optimistic; `g_HIGH+115` over-predicts by 148%.
