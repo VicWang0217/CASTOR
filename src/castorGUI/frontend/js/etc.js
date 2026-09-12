@@ -767,6 +767,7 @@
 
     function initTabs() {
         var tabs = root.querySelectorAll('.etc-tab');
+        var tabsBar = root.querySelector('.etc-tabs');
         Array.prototype.forEach.call(tabs, function (tab) {
             tab.addEventListener('click', function () {
                 Array.prototype.forEach.call(tabs, function (other) {
@@ -777,8 +778,29 @@
                 Array.prototype.forEach.call(root.querySelectorAll('.etc-tabpanel'), function (panel) {
                     panel.hidden = panel.dataset.panel !== tab.dataset.tab;
                 });
+                // Only matters once the bar has scrolled a tab partway out of view
+                // (see the wheel handler below); a no-op otherwise.
+                tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
             });
         });
+
+        /* The bar is overflow-x:auto with its scrollbar hidden (etc.css), which a
+           trackpad's horizontal swipe or a shift+wheel drives fine — but a plain
+           vertical-wheel mouse has no gesture for it and there is no visible scrollbar
+           to drag, so on that hardware alone the tabs past the edge are simply stuck.
+           Remap vertical wheel input onto scrollLeft to cover that case too, same as a
+           horizontally-scrolling row anywhere else on the web. Guarded on there being
+           somewhere to scroll and on the vertical delta actually dominating, so this
+           never fights a trackpad's own horizontal scroll or swallows a genuine page
+           scroll once the bar is already at its edge. */
+        if (tabsBar) {
+            tabsBar.addEventListener('wheel', function (event) {
+                if (tabsBar.scrollWidth <= tabsBar.clientWidth) { return; }
+                if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) { return; }
+                tabsBar.scrollLeft += event.deltaY;
+                event.preventDefault();
+            }, { passive: false });
+        }
     }
 
     function syncGroups(attribute, selected) {
