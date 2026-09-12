@@ -563,7 +563,7 @@
                                              frames, an aperture that tight tracks the seeing so closely that
                                              extraction systematics dominate well before the photon limit. -->
                                         <input type="number" name="options.aperture_factor" value="0.85" step="any" min="0.001" required
-                                               title="Photometric aperture radius as a multiple of the total FWHM. 0.85 keeps within 5% of the best achievable SNR whether the target or the sky dominates; 1.5 collects nearly all the star but pays three times the sky for it.">
+                                               title="Photometric aperture radius as a multiple of the total FWHM. 0.85 is photon-optimal but needs a stable PSF or aperture correction; for simple aperture photometry, enter the larger aperture your reduction will actually use.">
                                     </span>
                                 </label>
                                 <!-- The sky taken out of the aperture is measured in this annulus, and

@@ -44,7 +44,7 @@ the reason it is a convention rather than a measurement:
 ```
 assumed (pass the flag or --set to state it yourself):
   environment.seeing_fwhm = 1.4  — lulin's published median, not tonight's seeing
-  options.aperture_factor = 0.85  — near worst-case-optimal, but the best aperture is the one you will actually use
+  options.aperture_factor = 0.85  — photon-limit optimum; tight apertures need a stable PSF or aperture correction
   target.sed.type = 'flat'  — a choice of contract, not a measurement
   ...
 ```
