@@ -26,6 +26,11 @@
     var SINGLE_DEBOUNCE_MS = 250;
     var BATCH_DEBOUNCE_MS = 500;
 
+    // How long a single-point request may be in flight before the "Updating…" cue
+    // appears. Long enough that a fast response never flashes it, short enough that a
+    // slow one shows feedback before the wait reads as a freeze.
+    var BUSY_GRACE_MS = 200;
+
     var root = document.getElementById('castor-etc');
     var form = document.getElementById('castor-form');
     if (!root || !form) { return; }
@@ -681,7 +686,20 @@
     // Scheduling — debounce + cancel-the-predecessor
     // ========================================================================
 
-    function makeRunner(delay, buildBody, url, onResult) {
+    /* Shows the "Updating…" cue while a single-point request is outstanding, but only
+       once it has been outstanding for BUSY_GRACE_MS — the common fast response settles
+       first and never flashes it. Cleared the instant a result or an error lands. */
+    var busyGraceTimer = null;
+    function setSingleBusy(active) {
+        clearTimeout(busyGraceTimer);
+        if (active) {
+            busyGraceTimer = setTimeout(function () { el('results-busy').hidden = false; }, BUSY_GRACE_MS);
+        } else {
+            el('results-busy').hidden = true;
+        }
+    }
+
+    function makeRunner(delay, buildBody, url, onResult, onBusy) {
         var timer = null;
         var controller = null;
 
@@ -700,18 +718,24 @@
                     return;
                 }
 
+                if (onBusy) { onBusy(true); }
                 postJSON(url, body, mine.signal).then(function (data) {
                     if (mine.signal.aborted) { return; }
                     onResult(data, null);
                 }).catch(function (err) {
                     if (err.name === 'AbortError') { return; }
                     onResult(null, err.message);
+                }).then(function () {
+                    // Clear busy only for the request that is still current. A superseded
+                    // one was aborted by its successor, which has already turned the cue
+                    // back on — clearing it here would hide the wait that is still running.
+                    if (onBusy && !mine.signal.aborted) { onBusy(false); }
                 });
             }, delay);
         };
     }
 
-    var scheduleSingle = makeRunner(SINGLE_DEBOUNCE_MS, buildSingleRequest, CONFIG.apiUrl, renderSingle);
+    var scheduleSingle = makeRunner(SINGLE_DEBOUNCE_MS, buildSingleRequest, CONFIG.apiUrl, renderSingle, setSingleBusy);
     var scheduleBatch = makeRunner(BATCH_DEBOUNCE_MS, buildBatchRequest, CONFIG.batchUrl, renderBatch);
 
     function recalculate() {

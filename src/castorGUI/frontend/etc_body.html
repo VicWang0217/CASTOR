@@ -595,6 +595,14 @@
                     <div class="etc-hero-label" id="hero-label">Primary Result</div>
                     <div class="etc-hero-value" id="hero-value">&mdash;</div>
                     <div class="etc-hero-desc" id="hero-desc">Waiting for input&hellip;</div>
+                    <!-- Shown only while a recalculation is in flight past a short grace
+                         period (see etc.js's setSingleBusy): on a slow network the panel
+                         would otherwise sit on the last result with no sign anything is
+                         happening, which reads as a freeze. role="status" lets a screen
+                         reader hear it without stealing focus. -->
+                    <div class="etc-hero-busy" id="results-busy" role="status" aria-live="polite" hidden>
+                        <span class="etc-hero-busy-dot" aria-hidden="true"></span>Updating&hellip;
+                    </div>
                 </div>
 
                 <div class="etc-alert etc-alert-error" id="error-box" hidden>
