@@ -40,6 +40,7 @@ is one of the two Perl calculators CASTOR was refactored from, transcribed in
 | 14 | The VLT profile is mostly invention | DECIDE | 12 `GUESS` rows |
 | 15 | FORS2's throughput is a fudge that works in one band | BUILD | strict xfail, `test_eso.py` |
 | 16 | Everything measured here looks in one direction | OBSERVE | `test_lulin.py` |
+| 17 | Solve-for-time ignores the correlated flatness-noise ceiling | BUILD | strict xfail, `test_solve_time_floor.py` |
 
 ---
 
@@ -550,6 +551,27 @@ an OBSERVE and not a BUILD.
 **Do not** compute zodiacal light and add it to the present `mu_dark`. That
 counts a quarter of the sky twice, and it is the same error the extinction term
 made.
+
+---
+
+## 17. Solve-for-time ignores the correlated flatness-noise ceiling — BUILD
+
+**The forward model and inverse solver now disagree.** The 2% SLT background-
+flatness term is correlated across a stack, so it creates an asymptotic SNR
+ceiling. `calculate_total_snr()` implements that correctly. But
+`solve_required_exposures()` still returns `(target_snr / single_snr)^2`, which
+assumes every noise term averages down as the square root of the frame count.
+
+For the fixed near-zenith case in `SOLVE_TIME_FLATNESS.md` — SLT/DU934P, r',
+AB=20, 120 s frames, requested SNR 20 — the calculator says six frames are
+required and then reports an achieved SNR of only 14.44. Its own model puts the
+asymptotic ceiling below 20, so no number of frames can satisfy the request.
+
+**What changes with a fix.** The inverse needs to solve
+`SNR(N) = N*S / sqrt(N*V + N^2*F^2)` and return an explicit unreachable result
+when `target_snr >= S/F`. The response schema, CLI and GUI then need a way to
+represent that result rather than a finite exposure count. The strict xfail in
+`test_solve_time_floor.py` pins the present contradiction.
 
 ---
 

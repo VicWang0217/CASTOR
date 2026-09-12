@@ -222,6 +222,12 @@ de421.bsp
 validation/data/raw/*
 !validation/data/raw/README.md
 
+# Same principle, for a script's own synthetic output: a magnitude/frame-count
+# grid of the forward model evaluated over presets.json, nothing measured, so
+# `analyze_solve_time_floor.py` (see its "Regenerate with" in
+# SOLVE_TIME_FLATNESS.md) reproduces it exactly.
+validation/data/solve_time_flatness_audit.csv
+
 # Real observations stay out of a public repository. The intake checklist is
 # tracked; nothing that lands beside it is.
 validation/data/lulin/*
