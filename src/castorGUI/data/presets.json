@@ -72,8 +72,9 @@
             "pixel_pitch": 13.0,
             "quantum_efficiency": 0.85,
             "dark_current_rate": 0.017,
-            "readout_noise": 3.3,
-            "full_well_capacity": 130000
+            "readout_noise": 9.3,
+            "full_well_capacity": 130000,
+            "background_flatness_fraction": 0.02
           }
         },
         "SLT_DZ936": {

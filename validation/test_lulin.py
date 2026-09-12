@@ -255,9 +255,11 @@ def test_preset_throughput_matches_the_photometry(lot, band):
 def test_the_measured_throughput_reproduces_the_measured_sky(lot, band):
     """The loop closes: photometry gives T_sys, and T_sys turns sky counts into mu_dark.
 
-    Not a test of the preset — a test that the two independent measurements in
-    `lulin.MEASURED` are consistent with each other through CASTOR's own
-    equations. If this breaks, the reduction is wrong, not the engine.
+    Not a test of the preset, and not a cross-check between two independent
+    measurements — `mu_dark` in `lulin.MEASURED` is derived from `sky_rate`
+    and this same `throughput`, so this pins the round-trip through CASTOR's
+    own equations rather than confirming two separate quantities agree. If
+    this breaks, the reduction is wrong, not the engine.
     """
     m = lulin.MEASURED[band]
     rate = (_rate_per_unit_throughput(lot, band, m["mu_dark"])

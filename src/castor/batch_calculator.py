@@ -120,7 +120,7 @@ def run_batch_calculation(request: schema.BatchObservationRequest) -> schema.Bat
 
     single_snr_arr = physics.calculate_single_snr(
         source_rate_arr, sky_rate_arr, inst.camera.dark_current_rate, inst.camera.readout_noise,
-        n_pix, opt.single_exp_time, n_est
+        n_pix, opt.single_exp_time, n_est, inst.camera.background_flatness_fraction
     )
 
     # Stays None for solve_snr, where "how many exposures" is an input rather than
@@ -132,18 +132,20 @@ def run_batch_calculation(request: schema.BatchObservationRequest) -> schema.Bat
             total_exp_time = opt.single_exp_time * n_exp
             total_snr_arr = physics.calculate_total_snr(
                 source_rate_arr, sky_rate_arr, inst.camera.dark_current_rate, inst.camera.readout_noise,
-                n_pix, opt.single_exp_time, total_exp_time, n_exp, n_est
+                n_pix, opt.single_exp_time, total_exp_time, n_exp, n_est,
+                inst.camera.background_flatness_fraction
             )
 
         case schema.BatchSolveForTime(target_snr=t_snr):
             req_exp_float_arr = physics.solve_required_exposures(t_snr, single_snr_arr)
-            
+
             req_exp_int_arr = np.ceil(req_exp_float_arr)
             total_exp_time_arr = opt.single_exp_time * req_exp_int_arr
-            
+
             total_snr_arr = physics.calculate_total_snr(
                 source_rate_arr, sky_rate_arr, inst.camera.dark_current_rate, inst.camera.readout_noise,
-                n_pix, opt.single_exp_time, total_exp_time_arr, req_exp_int_arr, n_est
+                n_pix, opt.single_exp_time, total_exp_time_arr, req_exp_int_arr, n_est,
+                inst.camera.background_flatness_fraction
             )
             
         case _:

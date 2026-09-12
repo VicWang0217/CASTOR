@@ -222,6 +222,20 @@ de421.bsp
 validation/data/raw/*
 !validation/data/raw/README.md
 
+# Same principle, for a script's own synthetic output: a magnitude/frame-count
+# grid of the forward model evaluated over presets.json, nothing measured, so
+# `analyze_solve_time_floor.py` (see its "Regenerate with" in
+# SOLVE_TIME_FLATNESS.md) reproduces it exactly.
+validation/data/solve_time_flatness_audit.csv
+
+# Same reasoning, and the same regenerate-don't-carry script pattern, for the
+# LOT/SLT forward-performance sweep behind LULIN_PERFORMANCE.md - 5000+ rows
+# with nothing analyze_lulin_performance.py can't reproduce in a few seconds.
+# lot_r_endtoend_per_star.csv stays committed: unlike these two, it is
+# derived from real, gitignored LOT frames and has no other reconstruction
+# path.
+validation/data/lulin_forward_performance.csv
+
 # Real observations stay out of a public repository. The intake checklist is
 # tracked; nothing that lands beside it is.
 validation/data/lulin/*

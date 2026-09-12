@@ -11,6 +11,7 @@ from castor.physics import (
     calculate_extended_source_rate,
     calculate_sky_background_rate,
     calculate_sky_estimate_pixels,
+    calculate_background_flatness_variance,
     calculate_single_snr,
     calculate_total_snr,
     solve_required_exposures,
@@ -256,6 +257,73 @@ def test_the_sky_estimate_averages_down_with_stacking(dummy_stage4_params):
         calculate_total_snr(**doubled, single_exp_time=10.0, total_exp_time=100.0, num_exposures=10)
     )
     assert costed < plain
+
+# ------------------------------------------
+# Background flatness variance (ATBD 4.3.1a)
+# ------------------------------------------
+
+def test_flatness_variance_grows_with_the_square_of_the_aperture():
+    """A correlated error across the aperture, not shot noise: doubling N_pix
+    quadruples it, the same shape as N_est."""
+    small = calculate_background_flatness_variance(10.0, 30.0, 10.0, 0.02)
+    large = calculate_background_flatness_variance(10.0, 30.0, 20.0, 0.02)
+    npt.assert_allclose(large / small, 4.0)
+
+def test_flatness_variance_grows_with_the_square_of_the_background_level():
+    """It is a fractional error on the accumulated background, so doubling either
+    the sky rate or the exposure time doubles that level and quadruples the
+    variance."""
+    base = calculate_background_flatness_variance(10.0, 30.0, 10.0, 0.02)
+    doubled_rate = calculate_background_flatness_variance(20.0, 30.0, 10.0, 0.02)
+    doubled_time = calculate_background_flatness_variance(10.0, 60.0, 10.0, 0.02)
+    npt.assert_allclose(doubled_rate / base, 4.0)
+    npt.assert_allclose(doubled_time / base, 4.0)
+
+def test_zero_flatness_fraction_is_zero_variance():
+    assert calculate_background_flatness_variance(10.0, 30.0, 10.0, 0.0) == 0.0
+
+def test_the_flatness_term_is_the_only_thing_that_changed(dummy_stage4_params):
+    """Omitting it must reproduce the equation as it stood before this term
+    existed, so every result computed before it still holds."""
+    without = calculate_single_snr(**dummy_stage4_params, single_exp_time=60.0)
+    explicit_zero = calculate_single_snr(
+        **dummy_stage4_params, single_exp_time=60.0, background_flatness_fraction=0.0
+    )
+    with_flatness = calculate_single_snr(
+        **dummy_stage4_params, single_exp_time=60.0, background_flatness_fraction=0.1
+    )
+    npt.assert_allclose(without, explicit_zero)
+    assert with_flatness < without
+
+def test_the_flatness_term_does_not_average_down_with_stacking(dummy_stage4_params):
+    """A single flat field and background gradient apply identically to every
+    frame of a stack, so the fraction they leave in the total is fixed by the
+    stack's total accumulated background -- unlike read noise and dark current,
+    it must not shrink just because a fixed total exposure was split into more,
+    shorter frames."""
+    no_frame_noise = dummy_stage4_params.copy()
+    no_frame_noise["dark_current_rate"] = 0.0
+    no_frame_noise["readout_noise"] = 0.0
+
+    one_frame = calculate_total_snr(
+        **no_frame_noise, single_exp_time=100.0, total_exp_time=100.0, num_exposures=1,
+        background_flatness_fraction=0.1
+    )
+    ten_frames = calculate_total_snr(
+        **no_frame_noise, single_exp_time=10.0, total_exp_time=100.0, num_exposures=10,
+        background_flatness_fraction=0.1
+    )
+    npt.assert_allclose(one_frame, ten_frames)
+
+def test_the_flatness_term_degrades_total_snr(dummy_stage4_params):
+    plain = calculate_total_snr(
+        **dummy_stage4_params, single_exp_time=10.0, total_exp_time=100.0, num_exposures=10
+    )
+    flattened = calculate_total_snr(
+        **dummy_stage4_params, single_exp_time=10.0, total_exp_time=100.0, num_exposures=10,
+        background_flatness_fraction=0.1
+    )
+    assert flattened < plain
 
 def test_zero_exposure(dummy_stage4_params):
     """Zeroed exposure time: no exposure time means no SNR"""

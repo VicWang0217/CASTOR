@@ -24,6 +24,7 @@ __all__ = [
     "calculate_sky_background_rate",
     "calculate_peak_pixel_rate",
 
+    "calculate_background_flatness_variance",
     "calculate_single_snr",
     "calculate_total_snr",
     "solve_required_exposures",
@@ -560,6 +561,53 @@ def calculate_peak_pixel_rate(
 # Stage 4: Final Output Metrics
 # ==========================================
 
+def calculate_background_flatness_variance(
+    sky_count_rate: Numeric,
+    exp_time: Numeric,
+    num_pixels_aperture: Numeric,
+    background_flatness_fraction: Numeric
+) -> Numeric:
+    """
+    Calculate the noise floor from flat-field and background-gradient residuals.
+
+    Corresponds to ATBD Section 4.3.1a.
+    Measured against a real galaxy (NGC 3621, SLT r', 2026-09-02 — see
+    validation/data/raw/_extended_2026-09-02/RESULT.md), aperture noise fits
+    N_pix * (sky + RON^2) + (f * N_pix)^2, not just the first term. f was 2.0%
+    of the per-frame background level there. Unlike every other term in this
+    module, this one is not photon counting: it is a systematic fractional
+    error in the background level, correlated across every pixel in the
+    aperture rather than independent pixel to pixel, so it scales with N_pix
+    itself (then squared for variance) rather than with sqrt(N_pix). At 1.5"
+    radius it was undetectable; at 12" it made the predicted SNR optimistic by
+    a factor of 2.
+
+    Parameters
+    ----------
+    sky_count_rate : Numeric
+        Background photoelectron count rate per pixel [e-/s/pix].
+    exp_time : Numeric
+        Integration time the background accumulated over [s]. The caller
+        decides whether that is one frame or a whole stack — see
+        calculate_single_snr and calculate_total_snr.
+    num_pixels_aperture : Numeric
+        Number of pixels in the photometric aperture (N_pix) [count]. Deliberately
+        not N_pix + N_est: the fitted law was against the aperture alone, and the
+        residual this term describes is a property of the aperture's own footprint
+        on the flat, not of the separate annulus used to estimate the sky.
+    background_flatness_fraction : Numeric
+        Flat-field/background-gradient residual as a fraction of the background
+        level (f) [dimensionless]. Zero reproduces the textbook CCD equation,
+        which is what CASTOR computed until this term was added.
+
+    Returns
+    -------
+    Numeric
+        Flatness noise variance [e-²].
+    """
+    background_electrons = sky_count_rate * exp_time
+    return (background_flatness_fraction * background_electrons * num_pixels_aperture) ** 2.0
+
 def calculate_single_snr(
     source_count_rate: Numeric,
     sky_count_rate: Numeric,
@@ -567,13 +615,14 @@ def calculate_single_snr(
     readout_noise: Numeric,
     num_pixels_aperture: Numeric,
     single_exp_time: Numeric,
-    num_pixels_sky_estimate: Numeric = 0.0
+    num_pixels_sky_estimate: Numeric = 0.0,
+    background_flatness_fraction: Numeric = 0.0
 ) -> Numeric:
     """
     Calculate the Signal-to-Noise Ratio (SNR) for a single exposure frame.
 
     Corresponds to ATBD Section 4.3.1.
-    Calculates the signal from the source against the noise contributions from 
+    Calculates the signal from the source against the noise contributions from
     the source itself (Poisson noise), sky background, dark current, and readout noise.
 
     Parameters
@@ -594,6 +643,10 @@ def calculate_single_snr(
         Pixel-equivalent cost of estimating the sky (N_est), from
         calculate_sky_estimate_pixels. Zero means the sky is taken as known
         exactly, which no real reduction achieves.
+    background_flatness_fraction : Numeric
+        Flat-field/background-gradient residual, see
+        calculate_background_flatness_variance. Zero (the default) means not
+        modelled, the behaviour before this term existed.
 
     Returns
     -------
@@ -602,19 +655,28 @@ def calculate_single_snr(
     """
     # Signal = Source rate * time
     signal = source_count_rate * single_exp_time
-    
+
     # Noise Variance Components
     source_variance = source_count_rate * single_exp_time
     sky_variance = sky_count_rate * single_exp_time
     dark_variance = dark_current_rate * single_exp_time
     readout_variance = readout_noise ** 2.0
-    
-    # Total Variance = Source + (N_pix + N_est) * (Sky + Dark + RON^2).
+
+    # Total Variance = Source + (N_pix + N_est) * (Sky + Dark + RON^2) + flatness.
     # N_est rides on the same per-pixel variance as the aperture, because what
-    # the annulus measures is that same background.
+    # the annulus measures is that same background. Flatness is not per-pixel
+    # variance at all -- see calculate_background_flatness_variance -- so it is
+    # added once, not multiplied by background_pixels.
     background_pixels = num_pixels_aperture + num_pixels_sky_estimate
-    total_variance = source_variance + background_pixels * (sky_variance + dark_variance + readout_variance)
-    
+    flatness_variance = calculate_background_flatness_variance(
+        sky_count_rate, single_exp_time, num_pixels_aperture, background_flatness_fraction
+    )
+    total_variance = (
+        source_variance
+        + background_pixels * (sky_variance + dark_variance + readout_variance)
+        + flatness_variance
+    )
+
     return signal / np.sqrt(total_variance)
 
 def calculate_total_snr(
@@ -626,13 +688,14 @@ def calculate_total_snr(
     single_exp_time: Numeric,
     total_exp_time: Numeric,
     num_exposures: Numeric,
-    num_pixels_sky_estimate: Numeric = 0.0
+    num_pixels_sky_estimate: Numeric = 0.0,
+    background_flatness_fraction: Numeric = 0.0
 ) -> Numeric:
     """
     Calculate the Total Signal-to-Noise Ratio (SNR) across multiple exposures.
 
     Corresponds to ATBD Section 4.3.1.
-    Aggregates the signal over the total exposure time and accounts for the 
+    Aggregates the signal over the total exposure time and accounts for the
     accumulation of read noise across multiple frames.
 
     Parameters
@@ -647,6 +710,13 @@ def calculate_total_snr(
         calculate_sky_estimate_pixels. It applies once per frame: each frame is
         sky-subtracted with its own estimate, so stacking averages the estimates
         down at the same rate as everything else.
+    background_flatness_fraction : Numeric
+        Flat-field/background-gradient residual, see
+        calculate_background_flatness_variance. Unlike dark current and readout
+        noise, this does not enter per frame: a fixed flat divides every frame
+        of a night, so the fraction it leaves behind in a stack is set by the
+        stack's total accumulated background, not by how many frames composed
+        it. Zero (the default) means not modelled.
 
     Returns
     -------
@@ -654,18 +724,22 @@ def calculate_total_snr(
         Total stacked SNR [dimensionless].
     """
     signal = source_count_rate * total_exp_time
-    
+
     source_variance = source_count_rate * total_exp_time
     sky_variance_total = sky_count_rate * total_exp_time
-    
+
     # Dark current and Readout Noise scale with the number of discrete frames
     dark_variance_frame = dark_current_rate * single_exp_time
     readout_variance_frame = readout_noise ** 2.0
-    
+
     background_pixels = num_pixels_aperture + num_pixels_sky_estimate
+    flatness_variance = calculate_background_flatness_variance(
+        sky_count_rate, total_exp_time, num_pixels_aperture, background_flatness_fraction
+    )
     total_variance = source_variance + (background_pixels * sky_variance_total) + \
-                     (num_exposures * background_pixels * (dark_variance_frame + readout_variance_frame))
-                     
+                     (num_exposures * background_pixels * (dark_variance_frame + readout_variance_frame)) + \
+                     flatness_variance
+
     return signal / np.sqrt(total_variance)
 
 def solve_required_exposures(

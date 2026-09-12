@@ -46,8 +46,19 @@ class CameraSchema(StrictModel):
         description="Electronic noise introduced during the readout phase in e-/pix. (ATBD: RON)"
     )
     full_well_capacity: PositiveFloat = Field(
-        ..., 
+        ...,
         description="Maximum electron capacity per pixel before saturation in e-. (ATBD: FWC)"
+    )
+    background_flatness_fraction: float = Field(
+        default=0.0,
+        ge=0,
+        le=1,
+        description=(
+            "Flat-field and background-gradient residual, as a fraction of the background "
+            "level per frame, that does not average down as photon statistics — it is a "
+            "correlated error across the aperture, not shot noise. (ATBD: f_flat). Default "
+            "0.0 means not modelled, the behaviour before this field existed."
+        )
     )
 
 class FilterSchema(StrictModel):
