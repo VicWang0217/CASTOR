@@ -1,16 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 
-# 把 src 加入模組搜尋路徑
+# Add src to the module search path
 pathex = [os.path.abspath('src')]
 
-# 靜態檔案打包 (不再需要煩惱 Windows 或 Mac 的符號差異)
+# Bundle static assets (no more worrying about Windows/Mac path-separator differences)
 datas = [
     ('src/castorGUI/frontend', 'frontend'),
     ('src/castorGUI/data', 'data'),
 ]
 
-# 你想排除的「垃圾」模組全部寫在這裡，想加幾個就加幾個
+# List every module to exclude here; add as many as you like.
 #
 # astropy.visualization pulls in matplotlib at import time (wcsaxes/__init__.py
 # calls pytest.importorskip("matplotlib") itself), and CASTOR only ever touches
@@ -49,15 +49,15 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='CASTOR-ETC', # 輸出的執行檔名稱
-    icon='assets/desktop/castor.ico', # Windows 執行檔圖示
+    name='CASTOR-ETC', # name of the output executable
+    icon='assets/desktop/castor.ico', # Windows executable icon
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False, # 這個就是原本的 --noconsole
+    console=False, # equivalent to the original --noconsole
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
