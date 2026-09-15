@@ -12,8 +12,8 @@ A lesson lands here once it is closed and understood; if a row here still has an
 open question hanging off it, that question belongs in QUESTIONS.md too, and this
 entry links to it rather than restating it.
 
-Each entry carries four lines. **Found by** — the check or moment that first
-exposed it. **Reproduce** — how to see the evidence today; where the bug is
+Below the description, each entry carries three labelled lines. **Found by** —
+the check or moment that first exposed it. **Reproduce** — how to see the evidence today; where the bug is
 fixed, this is the regression test that now pins it, so a green run *is* the
 proof it stays fixed. **Guard** — what stops it recurring. Commit hashes in
 parentheses are the source.
@@ -99,6 +99,22 @@ direction.
   readout configuration (port, speed, temperature) beside the number — every
   camera in the 2011 prototype spans ×2–12 across its ports.
 
+### A hardcoded instrument constant is a latent bug the day a second instrument appears
+
+The Q16 sky-brightness comparison used a fixed 0.76 arcsec/pixel plate scale —
+which belongs to only one of three camera bodies this archive has run on the same
+telescope over the years (DU934P 0.76, DZ936 0.79). It also multiplied the ADU
+sky level by the frame's GAIN before applying a zero point already calibrated in
+ADU counts, mixing two unit systems on the sky side only (`d7a7000`).
+
+- **Found by** recomputing the Q16 comparison and finding gain folded in on one
+  side of a conversion whose other side never used it.
+- **Reproduce** read plate scale, gain and units from each frame's own WCS and
+  header; a constant that matches one camera silently corrupts the others.
+- **Guard** read per-frame quantities from the frame, and keep a conversion in
+  the same unit system its calibration used. A hardcoded instrument constant is
+  correct right up until the second instrument.
+
 ### The reference data has limits too — check them before blaming the model
 
 Above ~60 ke⁻ the observed SNR fell short and the shortfall grew with brightness
@@ -169,6 +185,44 @@ announce it, because the overrides beside it worked (`2d93107`).
 - **Guard** when the same physics lives in two places (engine and client), a
   divergence is invisible until a test pins them to the same answer. Give the
   second copy the first copy's test.
+
+### A default value can hide a bug that a different default exposes
+
+Moving the photometric aperture default from 1.5×FWHM to 0.85 (for SNR reasons)
+surfaced a latent saturation bug. `calculate_peak_pixel_rate` was being handed
+the source rate already scaled by the enclosed fraction, where its docstring
+asks for the target's *total* (`calculator.py` now divides f_enc back out). At the old f_enc=0.998 the error was 0.2% and
+invisible; at 0.865 it becomes 13%, in the direction that reports a frame safe
+when it is not. Extended sources were worse: the Gaussian peak fraction ran over
+a rate already integrated across the whole aperture, so their saturation time
+scaled with aperture² — a galaxy that saturated in one aperture was safe in
+another (`982c21f`).
+
+- **Found by** changing an unrelated default (the aperture) and watching a
+  saturation number move that must not depend on it.
+- **Reproduce** vary `k_ap` for a near-saturation point source; the peak-pixel
+  fill time must not change with the photometry aperture — the brightest pixel
+  belongs to the star and the seeing, not the circle drawn around them.
+- **Guard** an invariant that holds at one parameter value is not being tested
+  there. When a default makes an error negligible, the error is still live for
+  every other caller — assert the invariant, not the one happy number.
+
+### A cross-check is only a cross-check if the two sides are independent
+
+`test_lulin.py` said it checked that "two independent measurements" agree. They
+were not independent: `mu_dark` is derived from `sky_rate` through the same
+throughput, so the 0.4% residual it reported was `mu_dark` rounded to two
+decimals and nothing more. The test was still worth having — it pins the
+round-trip through CASTOR's equations — but its docstring claimed a cross-check
+the repo does not have (HAP-70, `a4dd05c`).
+
+- **Found by** tracing each side of the "agreement" back to its source and
+  finding one derived from the other.
+- **Reproduce** read `validation/test_lulin.py`: the assertion pins a round-trip,
+  and now says exactly that rather than claiming independence.
+- **Guard** before citing agreement as evidence, check that the inputs are
+  independent, not just the code paths. A test can be worth keeping while its
+  docstring is wrong; make the docstring claim only what it asserts.
 
 ### An inverse solver must invert the same noise model the forward path uses
 
