@@ -166,6 +166,24 @@ artificial light and aerosol, a term SkyCalc has for neither (`5b45ad5`).
   here, the interplanetary zodiacal component, anchored throughout to our own
   photometry.
 
+### A large dataset can still be a single measurement
+
+The Lulin suite is 123 calibrated frames over 18 nights, which reads like broad
+coverage and is not. They are one supernova under four header names: ecliptic
+latitude spans 0.1°, galactic latitude 0.1°, and no single night sweeps enough
+airmass to fit extinction (largest span 0.19). So `mu_dark` is not "Lulin's dark
+sky" but "Lulin's dark sky *toward ecliptic +16*", and the airmass leverage the
+extinction question needs is not in the data at all (`1404c3a`; this is
+QUESTIONS.md item 16).
+
+- **Found by** resolving the 123 frames by pointing and finding every one within
+  0.1° of the same patch of sky.
+- **Reproduce** read `validation/lulin.py`'s `SIGHTLINE` — the coordinate span
+  across all frames is a tenth of a degree.
+- **Guard** count independent *conditions*, not rows. N frames of one target
+  down one sightline is one measurement made N times; a fit constrains only what
+  the inputs actually vary.
+
 ## Software structure
 
 ### The same physics implemented twice will drift, silently
@@ -257,6 +275,40 @@ picture had drifted from the models and disagreed with each other (`090c40e`,
   names a structural property (a union, a required field, a count), check it
   against the code, not the last version of the prose. This file included.
 
+## Frontend
+
+### A CSS reset built on `inherit` breaks where the DOM grows a new boundary
+
+`* { box-sizing: inherit }` resolved up to the `border-box` on `.castor-etc` —
+until a `<select>` was placed inside a native `<details>`. `<details>` inserts a
+`::details-content` pseudo-element between the element and its children, and `*`
+does not match a pseudo-element, so it kept the UA's `content-box` and every
+field inside every disclosure inherited that. Invisible until a `width: 100%`
+select with 46px of padding and border pushed past the panel edge (`25bfc8b`).
+
+- **Found by** putting the first `<select>` inside a `<details>` and watching it
+  overflow 46px past the panel.
+- **Reproduce** nest a full-width control in `<details>` under a
+  `*{box-sizing:inherit}` reset; it renders content-box though its ancestor is
+  border-box.
+- **Guard** set `box-sizing: border-box` outright, not by inheritance.
+  `inherit` follows the flat tree, and any pseudo-element boundary silently
+  breaks the chain.
+
+### Setting an input's value in JS fires no change event
+
+A profile with one empty filter catalogue fell back to "Custom" but never
+revealed the fields underneath. The reveal logic listens for `change`, and the
+code set the control's `.value` in JS — which does not fire it (`e132a2e`).
+
+- **Found by** testing the personal-gear profile (its filter catalogue was
+  empty) and finding the Custom fields stayed hidden.
+- **Reproduce** set `el.value = …` in JS and watch no `change`/`input` listener
+  run; only a user edit or an explicit `dispatchEvent` does.
+- **Guard** after a programmatic value change, dispatch the event or call the
+  handler yourself. The DOM fires input events for user interaction, not for
+  assignment.
+
 ## Packaging and robustness
 
 ### A planning tool must not crash on planning ahead
@@ -275,6 +327,21 @@ to fetch a fresh table. So any observation more than ~a month out raised
 - **Guard** `auto_max_age = None` is set deliberately. It costs no real precision
   — astropy's out-of-coverage fallback is a 50-year polar-motion mean, good to the
   arcsecond, well inside any seeing FWHM this tool sees.
+
+### A dependency imported nowhere is still shipped
+
+The desktop build was 56 MB. `scipy`, `speclite` and `skyfield` were declared in
+`pyproject.toml` and imported nowhere in the shipped source — the one scipy user,
+`assets/make_icons.py`, declares it inline via PEP 723. Dropping them, and
+resyncing a venv that had drifted from `uv.lock` (leftover Flet packages, a full
+PyObjC suite), cut the app to 32 MB (`ff47d52`).
+
+- **Found by** asking why the packaged app was twice the size it needed to be.
+- **Reproduce** grep the shipped source for each declared dependency; one that
+  never appears is dead weight PyInstaller still bundles.
+- **Guard** the declared dependency set and the imported set drift apart. Audit
+  imports against `pyproject.toml`, keep the venv synced to `uv.lock`, and
+  declare build-only tools (icon generation) inline rather than as project deps.
 
 ### A test that reads the clock passes until it doesn't
 
