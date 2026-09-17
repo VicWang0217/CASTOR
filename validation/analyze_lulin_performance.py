@@ -25,7 +25,7 @@ from castorCLI import presets
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = ROOT / "validation/data/lulin_forward_performance.csv"
 FIGURE = ROOT / "validation/figures/lulin_forward_performance.png"
-REPORT = ROOT / "validation/LULIN_PERFORMANCE.md"
+REPORT = ROOT / "validation/report_sections/performance.md"
 
 RIGS = {"LOT": "Sophia", "SLT": "SLT_DU934P"}
 FILTERS = {"g": "Sloan_g", "r": "Sloan_r", "i": "Sloan_i"}
@@ -248,7 +248,7 @@ def write_report(table):
 
 This compares LOT/Sophia and SLT/DU934P by evaluating CASTOR's forward noise
 equation over actual integer stacks. It deliberately does not call the inverse
-exposure solver audited in `SOLVE_TIME_FLATNESS.md`.
+exposure solver audited in the solve-for-time section.
 
 ![Lulin forward performance](figures/lulin_forward_performance.png)
 

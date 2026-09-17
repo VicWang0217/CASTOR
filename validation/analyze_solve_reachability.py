@@ -1,6 +1,6 @@
 """Map where solve-for-time promises an SNR it cannot deliver.
 
-`SOLVE_TIME_FLATNESS.md` reports the defect at one operating point.  The audit
+The solve-for-time section reports the defect at one operating point.  The audit
 CSV actually sweeps LOT/SLT x g'/r'/i' x AB 17-23 x target SNR 5-50, so the
 whole reachable/unreachable structure can be drawn as a heat map instead of
 three numbers.

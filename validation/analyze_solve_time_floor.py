@@ -27,7 +27,7 @@ from castorCLI import presets
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = ROOT / "validation/data/solve_time_flatness_audit.csv"
 FIGURE = ROOT / "validation/figures/solve_time_flatness_floor.png"
-REPORT = ROOT / "validation/SOLVE_TIME_FLATNESS.md"
+REPORT = ROOT / "validation/report_sections/solve_time.md"
 
 RIGS = {"LOT": "Sophia", "SLT": "SLT_DU934P"}
 FILTERS = {"g": "Sloan_g", "r": "Sloan_r", "i": "Sloan_i"}

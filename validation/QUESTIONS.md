@@ -562,7 +562,7 @@ ceiling. `calculate_total_snr()` implements that correctly. But
 `solve_required_exposures()` still returns `(target_snr / single_snr)^2`, which
 assumes every noise term averages down as the square root of the frame count.
 
-For the fixed near-zenith case in `SOLVE_TIME_FLATNESS.md` — SLT/DU934P, r',
+For the fixed near-zenith case in `VALIDATION_REPORT.md` (solve-for-time) — SLT/DU934P, r',
 AB=20, 120 s frames, requested SNR 20 — the calculator says six frames are
 required and then reports an achieved SNR of only 14.44. Its own model puts the
 asymptotic ceiling below 20, so no number of frames can satisfy the request.

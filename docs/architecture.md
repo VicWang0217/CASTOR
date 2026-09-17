@@ -8,7 +8,7 @@ CASTOR is a lightweight, stateless exposure time calculator (ETC) core engine de
 
 > This document covers the core engine (`src/castor/`) only. Three things are built on top of it and documented separately: **CASTOR GUI** (`src/castorGUI/`, [architecture](gui_architecture.md)), the **command line** (`src/castorCLI/`, [reference](cli.md)), and the **preset catalogue** both of them read ([presets](presets.md)).
 >
-> How good the engine's answers actually are is a different question from how it is built, and has its own home: [`validation/`](../validation/README.md) measures CASTOR against other observatories' calculators and real photometry, and [`validation/QUESTIONS.md`](../validation/QUESTIONS.md) lists what it still does not know.
+> How good the engine's answers actually are is a different question from how it is built, and has its own home: [`validation/`](../validation/VALIDATION_REPORT.md) measures CASTOR against other observatories' calculators and real photometry, and [`validation/QUESTIONS.md`](../validation/QUESTIONS.md) lists what it still does not know.
 
 ### 1.2 Core Value
 

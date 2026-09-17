@@ -81,7 +81,7 @@ the GUI and on the command line both.
 
 ```bash
 uv run pytest              # the specification suite, on every commit
-uv run pytest validation   # the comparisons, on purpose — see validation/README.md
+uv run pytest validation   # the comparisons, on purpose — see validation/VALIDATION_REPORT.md
 ```
 
 ## Useful Resources
@@ -92,4 +92,4 @@ uv run pytest validation   # the comparisons, on purpose — see validation/READ
 - **[Presets](docs/presets.md):** How `presets.json` is shaped, what a profile may and may not claim, and why `mu_dark` means two different things in it.
 - **[Algorithm Theoretical Basis Document (ATBD)](docs/ATBD.md):** Mathematical formulations for photon count rates, SNR, and ephemeris.
 - **API Specifications:** CASTOR uses strict Pydantic schemas for data validation. For detailed request and response contracts, please refer directly to [`src/castor/schema.py`](src/castor/schema.py).
-- **[Validation](validation/README.md):** What CASTOR's answers are worth, measured against outside references and real frames — and [what it still does not know](validation/QUESTIONS.md), each item labelled with who can close it.
+- **[Validation](validation/VALIDATION_REPORT.md):** What CASTOR's answers are worth, measured against outside references and real frames — and [what it still does not know](validation/QUESTIONS.md), each item labelled with who can close it.
