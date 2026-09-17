@@ -23,7 +23,7 @@ import lulin
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = ROOT / "validation/data/lot_r_endtoend_per_star.csv"
 FIGURE = ROOT / "validation/figures/lot_r_color_term.png"
-REPORT = ROOT / "validation/LOT_R_COLOR_TERM.md"
+REPORT = ROOT / "validation/report_sections/color_term.md"
 
 MIN_SNR = 20.0
 PSF_KRON_RANGE = (-0.20, 0.05)
@@ -164,8 +164,8 @@ def write_report(result):
 
 The end-to-end field also tests whether calibrating LOT's natural Astrodon r'
 response directly against Pan-STARRS r introduces a stellar-colour bias. This
-is a count-rate calibration test, separate from the SNR residual test in
-`ENDTOEND_RESIDUALS.md`.
+is a count-rate calibration test, separate from the SNR residual test in the
+per-star end-to-end section.
 
 ![LOT r colour-term analysis](figures/lot_r_color_term.png)
 

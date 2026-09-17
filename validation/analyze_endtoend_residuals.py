@@ -33,7 +33,7 @@ RAW = ROOT / "validation/data/raw/_endtoend_2026-08-30"
 CATALOGUE = ROOT / "validation/data/raw/lot_sn2025wny/ps1/SN2025wny.csv"
 TABLE = ROOT / "validation/data/lot_r_endtoend_per_star.csv"
 FIGURE = ROOT / "validation/figures/lot_r_endtoend_residuals.png"
-REPORT = ROOT / "validation/ENDTOEND_RESIDUALS.md"
+REPORT = ROOT / "validation/report_sections/endtoend.md"
 
 PEAK_LIMIT_E = 50_000.0
 HEADLINE_FLUX_LIMIT_E = 60_000.0

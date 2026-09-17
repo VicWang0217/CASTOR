@@ -2,7 +2,7 @@
 
 This compares LOT/Sophia and SLT/DU934P by evaluating CASTOR's forward noise
 equation over actual integer stacks. It deliberately does not call the inverse
-exposure solver audited in `SOLVE_TIME_FLATNESS.md`.
+exposure solver audited in the solve-for-time section.
 
 ![Lulin forward performance](figures/lulin_forward_performance.png)
 

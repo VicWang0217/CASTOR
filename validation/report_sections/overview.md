@@ -1,4 +1,4 @@
-# Validation
+# Overview
 
 Comparisons between CASTOR and things outside CASTOR: other observatories'
 calculators, published sky models, and — in time — real photometry from Lulin.
@@ -16,8 +16,11 @@ pytest validation   # this suite, on purpose
 
 ## What is here
 
-[`ANALYSIS_SUMMARY.md`](ANALYSIS_SUMMARY.md) is the short path through the
-per-star SNR, colour-term, inverse-solver and forward-performance results.
+The **Summary** section is the short path through the per-star SNR, colour-term,
+inverse-solver, forward-performance and extended-source results; each of those
+has its own section below, with its figure and a command to regenerate it. This
+document is assembled from `report_sections/` by `build_report.py`; edit the
+fragments there, not this file.
 
 | | |
 |---|---|
@@ -26,10 +29,6 @@ per-star SNR, colour-term, inverse-solver and forward-performance results.
 | `lulin.py` | LOT/SOPHIA measured against real frames and Lulin's own documents |
 | `slt.py` | SLT measured against the 2024-04-14 airmass sweep, and why its extinction is unusable |
 | `endtoend.py` | LOT/SOPHIA r' SNR predicted by CASTOR against real frame-to-frame scatter |
-| `ENDTOEND_RESIDUALS.md` | The end-to-end result resolved by flux, catalogue colour and CCD position |
-| `LOT_R_COLOR_TERM.md` | LOT r' natural-system colour term against Pan-STARRS point sources |
-| `SOLVE_TIME_FLATNESS.md` | Why correlated background residuals break the current inverse exposure solver |
-| `LULIN_PERFORMANCE.md` | Forward-only LOT/SLT depth curves and per-configuration noise budgets |
 | `lulin_prototype.py` | The two Perl calculators CASTOR was refactored from, 2005 and 2011 |
 | `provenance.py` | Where every number in presets.json came from, or that it came from nowhere |
 | `skycalc.py` | Loading and rebinning ESO SkyCalc radiance exports |

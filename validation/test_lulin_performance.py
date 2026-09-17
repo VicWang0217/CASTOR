@@ -1,6 +1,6 @@
 """Structural checks for the forward-only Lulin capability curves.
 
-The full sweep behind LULIN_PERFORMANCE.md (2 telescopes x 3 bands x 101
+The full sweep behind the forward-performance report section (2 telescopes x 3 bands x 101
 magnitudes x 9 frame counts, see analyze_lulin_performance.py) is entirely
 synthetic - the forward model evaluated over a grid, nothing measured - and
 fully reproducible from the code and presets.json already in this repo, so
