@@ -1,6 +1,6 @@
 # Lulin analysis summary
 
-Four analyses now connect the real Lulin frames to decisions an observer can
+Five analyses now connect the real Lulin frames to decisions an observer can
 make with CASTOR. Each result has a publishable table, a regenerating script,
 and a validation test; the observatory's FITS files remain ignored.
 
@@ -10,6 +10,15 @@ and a validation test; the observatory's FITS files remain ignored.
 | LOT r' colour term | `+0.0182 mag per mag` in Pan-STARRS g-r (95% CI +0.0036 to +0.0423); only 1.5% across the central 90% colour range, far too small to explain the r' throughput excess | [`LOT_R_COLOR_TERM.md`](LOT_R_COLOR_TERM.md) |
 | Correlated-noise inverse audit | SLT r', AB=20, target SNR 20 returns six frames but only SNR **14.44**; the model ceiling is 18.46, so the request is unreachable | [`SOLVE_TIME_FLATNESS.md`](SOLVE_TIME_FLATNESS.md) |
 | Forward performance | Under the stated standard scene, one-hour SNR=5 limits are LOT g/r/i = **23.91/23.84/23.04**, SLT = **21.84/21.36/20.51** AB mag | [`LULIN_PERFORMANCE.md`](LULIN_PERFORMANCE.md) |
+| Extended-source noise | NGC 3621 SLT r': the fixed model (RN 9.28 e- + 2% flatness) tracks measured aperture noise to **~1%** to 12"; the shipped RN-3.3 model ran 1.5–3.2x low | [`EXTENDED_NOISE.md`](EXTENDED_NOISE.md) |
+
+Four figures added in this pass draw data the tables only summarise: the
+observed-vs-predicted noise 1:1 scatter and the ADC-ceiling saturation plot
+(`figures/lot_r_noise_scatter.png`), the per-term noise budget with depth-vs-
+time and the validated anchor (`figures/lulin_noise_budget.png`), the
+solve-for-time reachability map (`figures/solve_time_reachability.png`), and
+the extended-source noise-vs-radius comparison
+(`figures/extended_noise_vs_radius.png`).
 
 ## What is established
 
