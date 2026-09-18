@@ -142,6 +142,42 @@ WHY_NO_EXTINCTION = {
                                "i": 0.07, "z": 0.06},
 }
 
+#: The four-night follow-up, which confirmed the single night rather than
+#: rescuing it. 2024-04-14 above is one of four SN2024ggi nights that each sweep
+#: airmass 1.81 to ~3.8 (04-12/13/14/16). The obvious hope was that a joint fit
+#: — one extinction shared across nights, a free transparency term per night —
+#: would separate the airmass slope from the weather that one night could not.
+#: It does not, and the fit says why in its own covariance. See
+#: `reduce_slt_extinction.py` (862 frames re-reduced against the same SkyMapper
+#: refs) and `analyze_slt_extinction.py`, which reproduces the numbers below
+#: from the committed per-frame zero points.
+#:
+#: The reason is structural, not bad luck: the target is southern (dec -32.8)
+#: and Lulin is at +23.5, so it is setting from the moment it clears the east —
+#: airmass rises monotonically with time on EVERY night, not just 04-14. So a
+#: per-night transparency term and the shared extinction stay collinear on every
+#: night, and adding nights adds no lever. 04-13 in fact clears through the
+#: night (stars brighten as they set), which shows up as negative apparent
+#: extinction; 04-16 is the most internally consistent night and on its own
+#: still returns negative k in u'g'r'i'. Neither is a measurement of the air.
+#:
+#:   k              shared extinction, mag/airmass, from the joint fit
+#:   corr_k_max     max |correlation| of k with a per-night nuisance term; the
+#:                  identifiability tell — at 0.98 (model B) k is not measured
+#: Compare literature for a good site: u' 0.55 g' 0.20 r' 0.11 i' 0.07 z' 0.06.
+MULTINIGHT = {
+    "nights": ["2024-04-12", "2024-04-13", "2024-04-14", "2024-04-16"],
+    "frames": 862,
+    # shared k + per-night zero point
+    "model_A_k": {"u": 0.859, "g": -0.184, "r": -0.114, "i": -0.068, "z": 0.028},
+    "model_A_corr_k_max": 0.95,
+    # + per-night linear transparency drift
+    "model_B_k": {"u": 0.164, "g": 0.105, "r": -0.072, "i": -0.037, "z": 0.125},
+    "model_B_corr_k_max": 0.98,
+    # 2024-04-16 alone, the most internally consistent night
+    "model_C_k": {"u": -0.459, "g": -0.204, "r": -0.082, "i": -0.034, "z": 0.028},
+}
+
 #: Read straight off the frames' own WCS. Not shared with LOT, and not even
 #: shared across SLT's own history: this telescope has carried three cameras
 #: (see presets.json's camera catalogue) at 0.76, 0.79 and other plate scales.

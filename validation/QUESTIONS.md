@@ -27,7 +27,7 @@ is one of the two Perl calculators CASTOR was refactored from, transcribed in
 | 1 | Why is r' 1.81x g' and i'? | ASK | — |
 | 2 | ~~How big is LOT's secondary?~~ | **CLOSED** | answered by Trebur's offer |
 | 3 | Were the prototype's efficiencies measured, and on which camera? | ASK | likely unanswerable — 2005, nobody left to ask |
-| 4 | What is the extinction in each band? | OBSERVE | still open — 2024-04-14 was not photometric |
+| 4 | What is the extinction in each band? | OBSERVE | still open — four setting nights are degenerate, not just 2024-04-14 |
 | 5 | SLT has no photometry at all | OBSERVE | **CLOSED** — SN2024ggi/SLT, 2024-04-14 |
 | 6 | SOPHIA's dark current at −80 °C | OBSERVE | **Closed to an upper limit** — see below |
 | 7 | LOT's own u' filter is still unmeasured | DECIDE | — |
@@ -164,6 +164,48 @@ extinction curve since real extinction is smooth in wavelength.
 red, on every cut of the data. That is more than the LOT 18-night fit could do —
 it gets the ordering backwards (see the strict xfail in `test_lulin.py`) — and
 it is the one extinction result this project can currently defend.
+
+**Four nights, same wall.** 2024-04-14 is one of four SN2024ggi nights that each
+sweep airmass 1.81 to ~3.8 (04-12/13/14/16). All four were re-reduced against
+the same SkyMapper references — 862 frames, `reduce_slt_extinction.py` — and
+fitted jointly, one extinction shared across nights with a free transparency
+term per night (`analyze_slt_extinction.py`). It does not close the question,
+and the fit reports why: k correlates with the per-night nuisance terms at up to
+**0.98**, i.e. it is not identified. Several bands come out negative (stars
+brightening as they set — transparency improving faster than the air dims),
+which is unphysical:
+
+| model | u' | g' | r' | i' | z' |
+|---|---|---|---|---|---|
+| shared k + per-night zero point | +0.86 | −0.18 | −0.11 | −0.07 | +0.03 |
+| + per-night linear drift | +0.16 | +0.11 | −0.07 | −0.04 | +0.13 |
+| 2024-04-16 alone (cleanest night) | −0.46 | −0.20 | −0.08 | −0.03 | +0.03 |
+
+The cause is structural and is why more nights cannot help: the target is
+southern (dec −32.8) seen from Lulin at +23.5, so it is setting from the moment
+it rises. Airmass climbs monotonically with time on *every* night, so a
+per-night transparency term and the shared extinction stay collinear on every
+night. Only the ordering (falls towards the red) survives, as on the single
+night. `presets.json` keeps the site-wide 0.17 fallback and this question stays
+open — now with four nights of evidence that it is the geometry, not the weather
+on one night, that defeats it.
+
+**What would actually close it — the data to ask for.** Not more of the same:
+more setting-target nights add no lever. The degeneracy breaks only when airmass
+stops tracking time, which needs one of:
+
+- **a target that transits high at Lulin** (declination near +23), so airmass
+  falls then rises within a night and the transparency drift separates from the
+  airmass term; or
+- **the classic standard-star method**: several standard fields at a spread of
+  airmasses interleaved through one night, so multiple airmasses are sampled at
+  each instant and airmass is decoupled from time by design; and in either case
+- **a genuinely photometric night**, which only 1 or 2 can actually verify.
+
+This is new observation, not reduction of what is on hand — it belongs with the
+"data to obtain" items, not with anything closable now. It is also not a release
+blocker: the 0.17 site fallback is documented and defended, and the value is a
+refinement, not a correctness fix.
 
 `presets.json` therefore still carries the single site-wide 0.17, and
 `test_slt.py` asserts the per-band values are *absent* so they cannot be
