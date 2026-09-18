@@ -45,8 +45,7 @@ One telescope, one band, one galaxy, one night. The rate formula itself is
 correct to 1 part in 10^4; this tests only the noise and the aperture geometry.
 Two known design limitations are recorded separately and not visible here: the
 aperture is tied to the PSF rather than specifiable in arcsec, and
-`saturation_time_limit` assumes a flat profile
-([HAP-77](https://linear.app/happpycorn/issue/HAP-77)).
+`saturation_time_limit` assumes a flat profile.
 
 Regenerate the figure from the committed per-radius aggregate with:
 

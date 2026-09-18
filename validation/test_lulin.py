@@ -312,11 +312,16 @@ def test_the_sky_is_bluer_than_one_number_can_describe():
            "which falls towards the red. The cause is in SIGHTLINE: no single "
            "night spans more than 0.19 in airmass, so the fit measured "
            "night-to-night transparency, not an airmass term. QUESTIONS.md 4 is "
-           "now CLOSED by a different dataset — SLT/SN2024ggi 2024-04-14, one "
-           "night sweeping X=1.81 to 3.72, which does fall towards the red and "
-           "is what presets.json carries (see validation/slt.py). This stays "
-           "xfail because lulin.MEASURED is still the honest record of what "
-           "these 123 frames alone can say, and they cannot say this.",
+           "still OPEN (OBSERVE): the SLT/SN2024ggi sweeps that do span airmass "
+           "(four nights, 2024-04-12/13/14/16) are structurally degenerate — the "
+           "target is southern and always setting, so airmass and per-night "
+           "transparency stay collinear and k correlates with the nuisance terms "
+           "up to 0.98. They establish only that extinction falls towards the "
+           "red, not any usable per-band value (see validation/slt.py's "
+           "WHY_NO_EXTINCTION and MULTINIGHT). presets.json therefore still "
+           "carries the site-wide fallback. This stays xfail because "
+           "lulin.MEASURED is still the honest record of what these 123 frames "
+           "alone can say, and they cannot say this.",
 )
 def test_extinction_falls_towards_the_red():
     k = [lulin.MEASURED[b]["k"] for b in ("g", "r", "i")]

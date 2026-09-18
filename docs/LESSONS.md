@@ -118,7 +118,7 @@ ADU counts, mixing two unit systems on the sky side only (`d7a7000`).
 ### The reference data has limits too — check them before blaming the model
 
 Above ~60 ke⁻ the observed SNR fell short and the shortfall grew with brightness
-— the shape of a real model defect (closed HAP-72). It was not one: the reference
+— the shape of a real model defect. It was not one: the reference
 frames' own 16-bit ADC was saturating, so the "systematic" was in the data
 CASTOR was judged against, not in CASTOR (`a4dd05c`).
 
@@ -232,7 +232,7 @@ were not independent: `mu_dark` is derived from `sky_rate` through the same
 throughput, so the 0.4% residual it reported was `mu_dark` rounded to two
 decimals and nothing more. The test was still worth having — it pins the
 round-trip through CASTOR's equations — but its docstring claimed a cross-check
-the repo does not have (HAP-70, `a4dd05c`).
+the repo does not have (`a4dd05c`).
 
 - **Found by** tracing each side of the "agreement" back to its source and
   finding one derived from the other.

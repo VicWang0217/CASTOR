@@ -178,3 +178,47 @@ def test_the_night_actually_swept_airmass():
     sufficient: the sweep was real and the transparency still ruined it."""
     low, high = slt.NIGHT["airmass"]
     assert high - low > 1.5
+
+
+# ==========================================
+# Four nights did not rescue the extinction
+# ==========================================
+
+def test_four_night_join_leaves_k_unidentified():
+    """The joint fit's own covariance disqualifies it.
+
+    Sharing one extinction across four nights and letting transparency float per
+    night should have separated the airmass slope from the weather. It does not:
+    k stays correlated with the per-night nuisance terms at 0.9+ (0.98 once a
+    drift term is added), because the target sets every night and airmass tracks
+    time. slt.MULTINIGHT records it; this pins that it cannot be quietly
+    presented as a measurement. See analyze_slt_extinction.py.
+    """
+    assert slt.MULTINIGHT["model_A_corr_k_max"] >= 0.9
+    assert slt.MULTINIGHT["model_B_corr_k_max"] >= 0.95
+
+
+def test_four_nights_return_unphysical_extinction():
+    """Real extinction is positive and smooth in wavelength. The joint fit
+    returns negative k in several bands (stars brightening as they set), which
+    is transparency, not air — the tell that the values are not usable."""
+    assert min(slt.MULTINIGHT["model_A_k"].values()) < 0
+    assert min(slt.MULTINIGHT["model_C_k"].values()) < 0
+
+
+def test_the_committed_zero_points_reproduce_the_degeneracy():
+    """The evidence is committed, not just quoted: re-fit the per-frame zero
+    points and the identifiability tell has to come back the same.
+
+    This is what makes the four-night result reproducible without the 4.6 GB of
+    frames — the CSV and analyze_slt_extinction.py stand in for them.
+    """
+    pytest.importorskip("pandas", reason="analyze_slt_extinction needs pandas; "
+                        "run this leg with `uv run --with numpy --with pandas`")
+    import analyze_slt_extinction as ext
+
+    df = ext._load()
+    for band in BANDS:
+        result = ext.fit_band(df, band, drift=True)
+        assert result is not None
+        assert result["corr_k"] >= 0.9      # k not identified, every band
