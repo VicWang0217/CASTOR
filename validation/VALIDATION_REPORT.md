@@ -260,10 +260,11 @@ Each of these is asserted by a test, so it either stays true or announces itself
 
 ### Open questions
 
-**[QUESTIONS.md](QUESTIONS.md)** is the single index: fifteen items, each
-labelled with who can close it — the observatory, a night of telescope time, us,
-or a decision. Nothing open is recorded only here, in a `GUESS` row, or in an
-xfail reason; if it is open, it is in that file.
+**[QUESTIONS.md](QUESTIONS.md)** is the single index: seventeen items, two of
+them already marked CLOSED, each labelled with who can close it — the
+observatory, a night of telescope time, us, or a decision. Nothing open is
+recorded only here, in a `GUESS` row, or in an xfail reason; if it is open, it
+is in that file.
 
 Four items have been closed by looking harder rather than by asking. Lulin
 publishes Trebur's 2001 offer document, which gives LOT's mirrors outright — a
@@ -712,8 +713,7 @@ One telescope, one band, one galaxy, one night. The rate formula itself is
 correct to 1 part in 10^4; this tests only the noise and the aperture geometry.
 Two known design limitations are recorded separately and not visible here: the
 aperture is tied to the PSF rather than specifiable in arcsec, and
-`saturation_time_limit` assumes a flat profile
-([HAP-77](https://linear.app/happpycorn/issue/HAP-77)).
+`saturation_time_limit` assumes a flat profile.
 
 Regenerate the figure from the committed per-radius aggregate with:
 

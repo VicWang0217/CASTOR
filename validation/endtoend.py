@@ -64,7 +64,7 @@ MEASURED = {
     ">240k":    dict(n=5,   flux_e=261854.0, snr_obs=342.48),
 }
 
-#: HAP-11 follow-up on the same fifteen frames. Each entry is the median
+#: Follow-up on the same fifteen frames. Each entry is the median
 #: per-star fractional RMS after removing the transparency change common to a
 #: frame. The comparison uses only stars present on every frame, below the
 #: measured 50000 e- linearity cut, and with an unflagged elliptical-Gaussian
